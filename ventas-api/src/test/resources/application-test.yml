@@ -1,0 +1,20 @@
+# Perfil SOLO para pruebas automatizadas. El secreto es un valor de prueba, no se usa en ningún entorno real.
+spring:
+  datasource:
+    url: jdbc:h2:mem:ventas-${random.uuid};DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+app:
+  security:
+    jwt:
+      secret: solo-para-pruebas-automatizadas-no-es-un-secreto-real-0123456789
+      expiration: 5m
+    keycloak:
+      issuer-uri: http://keycloak.test/realms/dwf404
+      jwk-set-uri: http://keycloak.test/realms/dwf404/protocol/openid-connect/certs
+  seed:
+    password: ""

@@ -1,0 +1,205 @@
+{
+  "realm": "dwf404",
+  "displayName": "DWF404 - Ventas",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "accessTokenLifespan": 900,
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Administra productos y consulta usuarios"
+      },
+      {
+        "name": "EMPLEADO",
+        "description": "Consulta productos y registra pedidos"
+      },
+      {
+        "name": "USUARIO",
+        "description": "Solo consulta productos"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "ventas-api",
+      "name": "Ventas API (Resource Server)",
+      "description": "Representa a la API protegida. Solo se usa como audiencia (aud) de los tokens; no inicia flujos.",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "ventas-postman",
+      "name": "Cliente Postman (Authorization Code + PKCE)",
+      "description": "Cliente público usado por un usuario humano desde Postman.",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "https://oauth.pstmn.io/v1/callback",
+        "http://localhost:*"
+      ],
+      "webOrigins": [
+        "+"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "protocolMappers": [
+        {
+          "name": "audiencia-ventas-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "ventas-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "ventas-web",
+      "name": "Frontend web (Authorization Code + PKCE)",
+      "description": "Cliente público usado por el frontend servido en http://localhost:8080.",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "rootUrl": "http://localhost:8080",
+      "redirectUris": [
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:8080/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "audiencia-ventas-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "ventas-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "ventas-servicio",
+      "name": "Sistema externo (Client Credentials)",
+      "description": "Cliente confidencial máquina-a-máquina (p. ej. un punto de venta) que registra pedidos.",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${KC_SERVICE_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "audiencia-ventas-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "ventas-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "kc-admin",
+      "email": "kc-admin@ventas.sv",
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "Keycloak",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN"
+      ]
+    },
+    {
+      "username": "kc-empleado",
+      "email": "kc-empleado@ventas.sv",
+      "emailVerified": true,
+      "firstName": "Empleado",
+      "lastName": "Keycloak",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "EMPLEADO"
+      ]
+    },
+    {
+      "username": "kc-usuario",
+      "email": "kc-usuario@ventas.com",
+      "emailVerified": true,
+      "firstName": "Usuario",
+      "lastName": "Keycloak",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KC_DEMO_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "USUARIO"
+      ]
+    },
+    {
+      "username": "service-account-ventas-servicio",
+      "enabled": true,
+      "serviceAccountClientId": "ventas-servicio",
+      "realmRoles": [
+        "EMPLEADO"
+      ]
+    }
+  ]
+}

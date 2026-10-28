@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="es" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>VentasSV · Panel de ventas seguro</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+    <!-- Bootstrap 5, iconos, tipografía y SweetAlert2 (alertas amigables) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<!-- ============================ PANTALLA DE CARGA ============================ -->
+<div id="splash" class="splash">
+    <div class="splash-logo"><i class="bi bi-shield-lock-fill"></i></div>
+    <div class="splash-text">VentasSV</div>
+    <div class="splash-bar"><span></span></div>
+</div>
+
+<!-- ============================ VISTA DE ACCESO ============================ -->
+<section id="auth-view" class="auth-view d-none">
+    <canvas id="particles"></canvas>
+    <div class="container-fluid h-100">
+        <div class="row h-100 align-items-center">
+            <!-- Lado izquierdo: presentación -->
+            <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center px-5 auth-hero">
+                <div class="brand-pill mb-4"><i class="bi bi-shield-check"></i> Seguridad con JWT + OAuth2</div>
+                <h1 class="display-4 fw-bold text-white mb-3">
+                    Vende con confianza,<br><span class="text-gradient" id="hero-typed"></span><span class="caret">|</span>
+                </h1>
+                <p class="lead text-white-50 mb-5">Administra productos, registra pedidos y controla quién puede hacer qué.
+                    Cada solicitud viaja firmada y validada.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <div class="hero-feature"><i class="bi bi-key-fill"></i><span>Tokens firmados</span></div>
+                    <div class="hero-feature"><i class="bi bi-people-fill"></i><span>Roles y permisos</span></div>
+                    <div class="hero-feature"><i class="bi bi-cloud-check-fill"></i><span>Keycloak SSO</span></div>
+                </div>
+            </div>
+
+            <!-- Lado derecho: tarjeta de login / registro -->
+            <div class="col-lg-6 d-flex justify-content-center py-5">
+                <div class="auth-card glass" id="auth-card">
+                    <div class="text-center mb-4">
+                        <div class="auth-logo"><i class="bi bi-bag-heart-fill"></i></div>
+                        <h2 class="fw-bold mb-1">VentasSV</h2>
+                        <p class="text-body-secondary small mb-0">Panel de ventas seguro · DWF404</p>
+                    </div>
+
+                    <ul class="nav nav-pills nav-fill auth-tabs mb-4" role="tablist">
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-login" type="button"><i class="bi bi-box-arrow-in-right me-1"></i>Ingresar</button></li>
+                        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-registro" type="button"><i class="bi bi-person-plus me-1"></i>Crear cuenta</button></li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <!-- LOGIN -->
+                        <div class="tab-pane fade show active" id="tab-login">
+                            <form id="form-login" novalidate>
+                                <div class="form-floating mb-3">
+                                    <input type="email" class="form-control" id="login-email" name="email" placeholder="correo" autocomplete="username" required>
+                                    <label for="login-email"><i class="bi bi-envelope me-1"></i>Correo electrónico</label>
+                                    <div class="invalid-feedback" data-for="email"></div>
+                                </div>
+                                <div class="form-floating mb-3 position-relative">
+                                    <input type="password" class="form-control" id="login-password" name="password" placeholder="clave" autocomplete="current-password" required>
+                                    <label for="login-password"><i class="bi bi-lock me-1"></i>Contraseña</label>
+                                    <button type="button" class="btn-eye" data-toggle-password="#login-password" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
+                                    <div class="invalid-feedback" data-for="password"></div>
+                                </div>
+                                <button class="btn btn-brand w-100 btn-lg mb-3" type="submit">
+                                    <span class="btn-label"><i class="bi bi-unlock me-1"></i>Ingresar</span>
+                                </button>
+                            </form>
+
+                            <div class="divider"><span>o continúa con</span></div>
+                            <button class="btn btn-keycloak w-100 mb-3" id="btn-keycloak" type="button">
+                                <i class="bi bi-shield-lock me-2"></i>Iniciar sesión con Keycloak
+                            </button>
+
+                            <details class="demo-users small">
+                                <summary><i class="bi bi-info-circle me-1"></i>Usuarios de demostración</summary>
+                                <div class="mt-2 d-grid gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary text-start" data-demo="admin@ventas.sv"><span class="badge rol-ADMIN me-2">ADMIN</span>admin@ventas.sv</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary text-start" data-demo="empleado@ventas.sv"><span class="badge rol-EMPLEADO me-2">EMPLEADO</span>empleado@ventas.sv</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary text-start" data-demo="usuario@ventas.com"><span class="badge rol-USUARIO me-2">USUARIO</span>usuario@ventas.com</button>
+                                    <span class="text-body-secondary">La contraseña es el valor de <code>SEED_PASSWORD</code> de su archivo <code>.env</code>.</span>
+                                </div>
+                            </details>
+                        </div>
+
+                        <!-- REGISTRO -->
+                        <div class="tab-pane fade" id="tab-registro">
+                            <form id="form-registro" novalidate>
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="reg-nombre" name="nombreCompleto" placeholder="nombre" maxlength="120" required>
+                                    <label for="reg-nombre"><i class="bi bi-person me-1"></i>Nombre completo</label>
+                                    <div class="invalid-feedback" data-for="nombreCompleto"></div>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="email" class="form-control" id="reg-email" name="email" placeholder="correo" maxlength="150" autocomplete="email" required>
+                                    <label for="reg-email"><i class="bi bi-envelope me-1"></i>Correo electrónico</label>
+                                    <div class="invalid-feedback" data-for="email"></div>
+                                </div>
+                                <div class="form-floating mb-2 position-relative">
+                                    <input type="password" class="form-control" id="reg-password" name="password" placeholder="clave" maxlength="72" autocomplete="new-password" required>
+                                    <label for="reg-password"><i class="bi bi-lock me-1"></i>Contraseña</label>
+                                    <button type="button" class="btn-eye" data-toggle-password="#reg-password" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
+                                    <div class="invalid-feedback" data-for="password"></div>
+                                </div>
+                                <div class="strength mb-3">
+                                    <div class="progress" role="progressbar" style="height:6px"><div class="progress-bar" id="strength-bar" style="width:0%"></div></div>
+                                    <small id="strength-text" class="text-body-secondary">Mínimo 8 caracteres, con letras y números</small>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="password" class="form-control" id="reg-password2" name="password2" placeholder="clave" maxlength="72" autocomplete="new-password" required>
+                                    <label for="reg-password2"><i class="bi bi-lock-fill me-1"></i>Confirmar contraseña</label>
+                                    <div class="invalid-feedback" data-for="password2"></div>
+                                </div>
+                                <div class="alert alert-info small py-2 d-flex gap-2 align-items-start">
+                                    <i class="bi bi-info-circle-fill mt-1"></i>
+                                    <span>Las cuentas nuevas inician con rol <strong>USUARIO</strong>. Solo un administrador puede asignar otros roles.</span>
+                                </div>
+                                <button class="btn btn-brand w-100 btn-lg" type="submit">
+                                    <span class="btn-label"><i class="bi bi-person-check me-1"></i>Crear cuenta</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================ APLICACIÓN ============================ -->
+<section id="app-view" class="app-view d-none">
+    <!-- Barra lateral -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="auth-logo sm"><i class="bi bi-bag-heart-fill"></i></div>
+            <span>VentasSV</span>
+        </div>
+        <nav class="nav flex-column sidebar-nav" id="sidebar-nav">
+            <a class="nav-link active" href="#inicio" data-view="inicio"><i class="bi bi-grid-1x2-fill"></i><span>Inicio</span></a>
+            <a class="nav-link" href="#productos" data-view="productos" data-perm="producto:leer"><i class="bi bi-box-seam-fill"></i><span>Productos</span></a>
+            <a class="nav-link" href="#pedidos" data-view="pedidos" data-perm-any="pedido:crear,pedido:leer-propios,pedido:leer-todos"><i class="bi bi-cart-check-fill"></i><span>Pedidos</span></a>
+            <a class="nav-link" href="#usuarios" data-view="usuarios" data-perm="usuario:leer"><i class="bi bi-people-fill"></i><span>Usuarios</span></a>
+            <a class="nav-link" href="#sesion" data-view="sesion"><i class="bi bi-person-badge-fill"></i><span>Mi sesión</span></a>
+            <a class="nav-link" href="#laboratorio" data-view="laboratorio"><i class="bi bi-shield-shaded"></i><span>Laboratorio de seguridad</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="token-ring" id="token-ring" title="Tiempo restante del token">
+                <svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.9"/><circle class="fg" id="token-ring-fg" cx="18" cy="18" r="15.9"/></svg>
+                <span id="token-ring-text">--:--</span>
+            </div>
+            <div class="small">
+                <div class="text-white-50">Token vence en</div>
+                <div class="fw-semibold" id="token-origin">—</div>
+            </div>
+        </div>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Contenido -->
+    <main class="main">
+        <header class="topbar">
+            <button class="btn btn-icon d-lg-none" id="btn-menu" aria-label="Menú"><i class="bi bi-list"></i></button>
+            <div class="me-auto">
+                <div class="small text-body-secondary" id="topbar-date"></div>
+                <h1 class="h5 fw-bold mb-0" id="topbar-title">Inicio</h1>
+            </div>
+            <button class="btn btn-icon" id="btn-theme" title="Cambiar tema" aria-label="Cambiar tema"><i class="bi bi-moon-stars"></i></button>
+            <div class="dropdown">
+                <button class="btn user-chip dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="avatar" id="user-avatar">?</span>
+                    <span class="d-none d-sm-inline text-start lh-sm">
+                        <span class="d-block fw-semibold" id="user-name">Usuario</span>
+                        <span class="badge" id="user-role">ROL</span>
+                    </span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <li><a class="dropdown-item" href="#sesion" data-view="sesion"><i class="bi bi-person-badge me-2"></i>Mi sesión</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button class="dropdown-item text-danger" id="btn-logout"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button></li>
+                </ul>
+            </div>
+        </header>
+
+        <div class="content">
+            <!-- ======== INICIO ======== -->
+            <section class="view" id="view-inicio">
+                <div class="welcome-card mb-4">
+                    <div>
+                        <h2 class="fw-bold mb-1"><span id="welcome-greeting">Hola</span>, <span id="welcome-name">usuario</span> <span class="wave">👋</span></h2>
+                        <p class="mb-0 opacity-75" id="welcome-sub">Este es el resumen de tu tienda.</p>
+                    </div>
+                    <i class="bi bi-graph-up-arrow welcome-icon"></i>
+                </div>
+
+                <div class="row g-3 mb-4" id="stats">
+                    <div class="col-6 col-xl-3"><div class="stat-card c1"><i class="bi bi-box-seam"></i><div><div class="stat-value" data-counter="0" id="stat-productos">0</div><div class="stat-label">Productos</div></div></div></div>
+                    <div class="col-6 col-xl-3"><div class="stat-card c2"><i class="bi bi-stack"></i><div><div class="stat-value" data-counter="0" id="stat-stock">0</div><div class="stat-label">Unidades en stock</div></div></div></div>
+                    <div class="col-6 col-xl-3"><div class="stat-card c3"><i class="bi bi-cash-coin"></i><div><div class="stat-value" data-counter="0" data-money="1" id="stat-valor">$0</div><div class="stat-label">Valor del inventario</div></div></div></div>
+                    <div class="col-6 col-xl-3"><div class="stat-card c4"><i class="bi bi-receipt"></i><div><div class="stat-value" data-counter="0" id="stat-pedidos">—</div><div class="stat-label" id="stat-pedidos-label">Pedidos</div></div></div></div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-lg-7">
+                        <div class="card card-soft h-100">
+                            <div class="card-body">
+                                <h3 class="h6 fw-bold mb-3"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Acciones rápidas</h3>
+                                <div class="row g-2" id="quick-actions"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="card card-soft h-100">
+                            <div class="card-body">
+                                <h3 class="h6 fw-bold mb-3"><i class="bi bi-key-fill text-primary me-1"></i>Tus permisos</h3>
+                                <p class="small text-body-secondary">Calculados por el servidor a partir de tu rol firmado en el token.</p>
+                                <div id="perm-chips" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card card-soft">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h3 class="h6 fw-bold mb-0"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Productos con poco stock</h3>
+                                    <span class="badge text-bg-light" id="low-stock-count">0</span>
+                                </div>
+                                <div id="low-stock" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======== PRODUCTOS ======== -->
+            <section class="view d-none" id="view-productos">
+                <div class="toolbar mb-4">
+                    <div class="input-group search">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="search" class="form-control" id="prod-search" placeholder="Buscar producto…">
+                    </div>
+                    <select class="form-select w-auto" id="prod-sort">
+                        <option value="nombre">Nombre (A-Z)</option>
+                        <option value="precio-asc">Precio: menor a mayor</option>
+                        <option value="precio-desc">Precio: mayor a menor</option>
+                        <option value="stock-asc">Stock: menor primero</option>
+                    </select>
+                    <button class="btn btn-brand ms-auto" id="btn-new-product" data-perm="producto:escribir">
+                        <i class="bi bi-plus-lg me-1"></i>Nuevo producto
+                    </button>
+                </div>
+                <div class="row g-3" id="product-grid"></div>
+                <div class="empty-state d-none" id="product-empty">
+                    <i class="bi bi-inboxes"></i>
+                    <p>No hay productos que coincidan con la búsqueda.</p>
+                </div>
+            </section>
+
+            <!-- ======== PEDIDOS ======== -->
+            <section class="view d-none" id="view-pedidos">
+                <div class="row g-4">
+                    <div class="col-xl-5" id="order-builder-col" data-perm="pedido:crear">
+                        <div class="card card-soft sticky-xl">
+                            <div class="card-body">
+                                <h3 class="h6 fw-bold mb-3"><i class="bi bi-cart-plus-fill text-success me-1"></i>Nuevo pedido</h3>
+                                <form id="form-pedido" novalidate>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold" for="ped-cliente">Cliente</label>
+                                        <input class="form-control" id="ped-cliente" name="cliente" maxlength="120" placeholder="Nombre del cliente (opcional)">
+                                        <div class="invalid-feedback" data-for="cliente"></div>
+                                    </div>
+                                    <div class="row g-2 align-items-end mb-3">
+                                        <div class="col-7">
+                                            <label class="form-label small fw-semibold" for="ped-producto">Producto</label>
+                                            <select class="form-select" id="ped-producto"></select>
+                                        </div>
+                                        <div class="col-3">
+                                            <label class="form-label small fw-semibold" for="ped-cantidad">Cant.</label>
+                                            <input type="number" class="form-control" id="ped-cantidad" min="1" value="1">
+                                        </div>
+                                        <div class="col-2 d-grid">
+                                            <button type="button" class="btn btn-success" id="btn-add-item" title="Agregar"><i class="bi bi-plus-lg"></i></button>
+                                        </div>
+                                        <div class="col-12"><div class="invalid-feedback d-block" id="item-error"></div></div>
+                                    </div>
+                                    <div class="cart mb-3">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead><tr><th>Producto</th><th class="text-center">Cant.</th><th class="text-end">Subtotal</th><th></th></tr></thead>
+                                            <tbody id="cart-body"></tbody>
+                                        </table>
+                                        <div class="cart-empty" id="cart-empty"><i class="bi bi-basket"></i> Agrega productos al pedido</div>
+                                    </div>
+                                    <div class="invalid-feedback d-block mb-2" data-for="items"></div>
+                                    <div class="d-flex justify-content-between align-items-center total-row mb-3">
+                                        <span class="fw-semibold">Total</span>
+                                        <span class="total" id="cart-total">$0.00</span>
+                                    </div>
+                                    <button class="btn btn-brand w-100" type="submit"><span class="btn-label"><i class="bi bi-check2-circle me-1"></i>Registrar pedido</span></button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col" id="orders-col">
+                        <div class="card card-soft">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h3 class="h6 fw-bold mb-0"><i class="bi bi-receipt-cutoff text-primary me-1"></i><span id="orders-title">Pedidos</span></h3>
+                                    <button class="btn btn-sm btn-outline-secondary" id="btn-reload-orders"><i class="bi bi-arrow-clockwise"></i></button>
+                                </div>
+                                <div id="orders-list" class="d-grid gap-2"></div>
+                                <div class="empty-state d-none" id="orders-empty"><i class="bi bi-receipt"></i><p>Aún no hay pedidos registrados.</p></div>
+                                <div class="empty-state d-none" id="orders-noperm"><i class="bi bi-lock"></i><p>Tu rol no tiene permiso para consultar pedidos.</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======== USUARIOS ======== -->
+            <section class="view d-none" id="view-usuarios">
+                <div class="card card-soft">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+                            <h3 class="h6 fw-bold mb-0"><i class="bi bi-people-fill text-primary me-1"></i>Usuarios registrados</h3>
+                            <div class="input-group search" style="max-width:300px">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="search" class="form-control" id="user-search" placeholder="Buscar…">
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead><tr><th>Usuario</th><th>Correo</th><th>Rol</th><th class="text-end">Acción</th></tr></thead>
+                                <tbody id="users-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======== MI SESIÓN ======== -->
+            <section class="view d-none" id="view-sesion">
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <div class="card card-soft text-center profile-card">
+                            <div class="card-body">
+                                <div class="avatar xl mx-auto mb-3" id="profile-avatar">?</div>
+                                <h3 class="h5 fw-bold mb-1" id="profile-name">—</h3>
+                                <p class="text-body-secondary mb-2" id="profile-email">—</p>
+                                <span class="badge fs-6" id="profile-role">—</span>
+                                <hr>
+                                <dl class="row small text-start mb-0">
+                                    <dt class="col-5">Proveedor</dt><dd class="col-7" id="profile-issuer-type">—</dd>
+                                    <dt class="col-5">Emitido</dt><dd class="col-7" id="profile-iat">—</dd>
+                                    <dt class="col-5">Expira</dt><dd class="col-7" id="profile-exp">—</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="card card-soft">
+                            <div class="card-body">
+                                <h3 class="h6 fw-bold"><i class="bi bi-braces me-1"></i>Contenido del token (claims)</h3>
+                                <p class="small text-body-secondary">Solo lectura. Cualquier cambio a este contenido invalida la firma y la API lo rechaza con 401.</p>
+                                <pre class="claims" id="profile-claims">{}</pre>
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-copy-token"><i class="bi bi-clipboard me-1"></i>Copiar token</button>
+                                <a class="btn btn-sm btn-outline-primary" href="https://jwt.io" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1"></i>Abrir jwt.io</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======== LABORATORIO ======== -->
+            <section class="view d-none" id="view-laboratorio">
+                <div class="lab-hero mb-4">
+                    <div>
+                        <h2 class="h4 fw-bold mb-1"><i class="bi bi-shield-shaded me-2"></i>Laboratorio de seguridad</h2>
+                        <p class="mb-0 opacity-75">Ejecuta los escenarios del Módulo 5 contra la API real y compara el código esperado con el obtenido.</p>
+                    </div>
+                    <button class="btn btn-light btn-lg fw-semibold" id="btn-run-all"><i class="bi bi-play-fill me-1"></i>Ejecutar todos</button>
+                </div>
+                <div class="row g-3" id="lab-grid"></div>
+            </section>
+        </div>
+    </main>
+</section>
+
+<!-- ============================ MODAL PRODUCTO ============================ -->
+<div class="modal fade" id="modal-producto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" id="form-producto" novalidate>
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="modal-producto-title">Nuevo producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="id">
+                <div class="form-floating mb-3">
+                    <input class="form-control" id="prod-nombre" name="nombre" placeholder="nombre" maxlength="120" required>
+                    <label for="prod-nombre">Nombre</label>
+                    <div class="invalid-feedback" data-for="nombre"></div>
+                </div>
+                <div class="form-floating mb-3">
+                    <textarea class="form-control" id="prod-descripcion" name="descripcion" placeholder="desc" maxlength="500" style="height:90px"></textarea>
+                    <label for="prod-descripcion">Descripción</label>
+                    <div class="form-text text-end"><span id="desc-count">0</span>/500</div>
+                    <div class="invalid-feedback" data-for="descripcion"></div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="input-group has-validation">
+                            <span class="input-group-text">$</span>
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="prod-precio" name="precio" placeholder="0" step="0.01" min="0.01" required>
+                                <label for="prod-precio">Precio</label>
+                            </div>
+                            <div class="invalid-feedback" data-for="precio"></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <input type="number" class="form-control" id="prod-stock" name="stock" placeholder="0" step="1" min="0" required>
+                            <label for="prod-stock">Stock</label>
+                            <div class="invalid-feedback" data-for="stock"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-brand"><span class="btn-label"><i class="bi bi-save me-1"></i>Guardar</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bootstrap JS, SweetAlert2 y la aplicación -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>

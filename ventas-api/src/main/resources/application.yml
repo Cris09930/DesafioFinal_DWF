@@ -1,0 +1,43 @@
+# ------------------------------------------------------------------
+#  ventas-api - configuración principal
+#  Los SECRETOS se leen de variables de entorno (ver .env.example).
+#  JWT_SECRET y DB_PASSWORD no tienen valor por defecto a propósito.
+# ------------------------------------------------------------------
+spring:
+  application:
+    name: ventas-api
+  config:
+    # Lee el archivo .env de la raíz del proyecto (si existe) para que IntelliJ y docker compose
+    # compartan las mismas variables. .env está en .gitignore: nunca se sube al repositorio.
+    import: optional:file:.env[.properties]
+  datasource:
+    url: ${DB_URL:jdbc:mariadb://localhost:3306/ventas_db}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate.format_sql: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}                 # >= 32 caracteres; nunca se versiona
+      issuer: ventas-api-auth               # claim iss de los tokens propios
+      audience: ventas-api                  # claim aud que se exige
+      expiration: ${JWT_EXPIRATION:20m}
+    keycloak:
+      issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/dwf404}
+      jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/dwf404/protocol/openid-connect/certs}
+      audience: ventas-api                  # Keycloak agrega esta audiencia con un "audience mapper"
+  seed:
+    password: ${SEED_PASSWORD:}             # opcional: crea admin/empleado/consulta de demostración
+
+logging:
+  level:
+    org.springframework.security: INFO
